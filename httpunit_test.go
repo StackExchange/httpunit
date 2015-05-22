@@ -1,4 +1,4 @@
-package comply
+package httpunit
 
 import "testing"
 

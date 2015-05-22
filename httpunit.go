@@ -1,5 +1,5 @@
-// Package comply tests compliance of net services.
-package comply
+// Package httpunit tests compliance of net services.
+package httpunit
 
 import (
 	"fmt"

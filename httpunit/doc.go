@@ -1,6 +1,6 @@
 /*
 
-Comply tests compliance of web and net servers with desired output.
+httpunit tests compliance of web and net servers with desired output.
 
 It has three modes. All modes support flag options. Only one mode may be
 active at once.
@@ -16,7 +16,7 @@ all IP addresses resolved to from the URL's hostname.
 If hiera is specified, the listeners from it are extracted and tested.
 
 Usage:
-	httpComply [flag] [-hiera="path/to/sets.json"] [-toml="/path/to/comply.toml"] [url] [ip] [code] [regex]
+	httpunit [flag] [-hiera="path/to/sets.json"] [-toml="/path/to/httpunit.toml"] [url] [ip] [code] [regex]
 
 The flags are:
 	-filter=""

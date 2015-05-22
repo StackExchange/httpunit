@@ -1,6 +1,6 @@
-# httpComply
+# httpUnit
 
-httpComply tests web and net servers for basic functionality.
+httpUnit tests web and net servers for basic functionality.
 
 The tool can open an http/https connection and verify that the expected
 status code is received. It can also verify that the resulting HTML output
@@ -22,7 +22,7 @@ all IP addresses resolved to from the URL's hostname.
 
 Usage:
 
-	httpComply [flag] [-hiera="path/to/sets.json"] [-toml="/path/to/comply.toml"] [url] [ip] [code] [regex]
+	httpUnit [flag] [-hiera="path/to/sets.json"] [-toml="/path/to/httpunit.toml"] [url] [ip] [code] [regex]
 
 The flags are:
 

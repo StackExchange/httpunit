@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/StackExchange/comply"
+	"github.com/StackExchange/httpunit"
 	"github.com/bradfitz/slice"
 )
 
@@ -22,7 +22,7 @@ var (
 	filter   = flag.String("filter", "", `if specified, only uses this IP address; may end with "." to filter by IPs that start with the filter`)
 	no10     = flag.Bool("no10", false, "no RFC1918 addresses")
 	hiera    = flag.String("hiera", "", "tests listeners members from the specified hieradata/sets.json file")
-	tomlLoc  = flag.String("toml", "", "comply.toml location")
+	tomlLoc  = flag.String("toml", "", "httpunit.toml location")
 	verbose1 = flag.Bool("v", false, "verbose output: show successes")
 	verbose2 = flag.Bool("vv", false, "more verbose output: show -header, cert details")
 	header   = flag.String("header", "X-Request-Guid", "an HTTP to header to print in verbose mode")
@@ -36,10 +36,10 @@ func main() {
 	if *verbose2 {
 		*verbose1 = true
 	}
-	plans := new(comply.Plans)
+	plans := new(httpunit.Plans)
 	var err error
 	if *timeout > 0 {
-		comply.Timeout = *timeout
+		httpunit.Timeout = *timeout
 	}
 	if *hiera != "" {
 		if plans.Plans != nil {
@@ -64,7 +64,7 @@ func main() {
 		}
 		u := args[0]
 		args = args[1:]
-		tp := comply.TestPlan{
+		tp := httpunit.TestPlan{
 			Label: u,
 		}
 		if !strings.Contains(u, "://") {
@@ -96,7 +96,7 @@ func main() {
 		if len(args) > 0 {
 			log.Fatalf("too many arguments")
 		}
-		plans.Plans = []*comply.TestPlan{&tp}
+		plans.Plans = []*httpunit.TestPlan{&tp}
 	}
 	if len(plans.Plans) == 0 {
 		log.Fatalf("no tests specified")
@@ -105,7 +105,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var res comply.Results
+	var res httpunit.Results
 	delay := time.Second / 2
 	next := time.After(delay)
 	got := 0
@@ -127,7 +127,7 @@ Loop:
 		}
 	}
 
-	pidx := make(map[*comply.TestPlan]int)
+	pidx := make(map[*httpunit.TestPlan]int)
 	for i, p := range plans.Plans {
 		pidx[p] = i
 	}
@@ -195,7 +195,7 @@ Loop:
 	}
 }
 
-func extractHiera(fname string) ([]*comply.TestPlan, error) {
+func extractHiera(fname string) ([]*httpunit.TestPlan, error) {
 	b, err := ioutil.ReadFile(fname)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func extractHiera(fname string) ([]*comply.TestPlan, error) {
 	if err := json.Unmarshal(b, &hs); err != nil {
 		return nil, err
 	}
-	var plans []*comply.TestPlan
+	var plans []*httpunit.TestPlan
 	for addr := range hs.Iptables.Listeners.Members {
 		sp := strings.Split(addr, ":")
 		if len(sp) != 2 {
@@ -219,7 +219,7 @@ func extractHiera(fname string) ([]*comply.TestPlan, error) {
 			return nil, fmt.Errorf("unrecognized hiera address: %s", addr)
 		}
 		ip, scheme := sp[0], sp[1]
-		plans = append(plans, &comply.TestPlan{
+		plans = append(plans, &httpunit.TestPlan{
 			Label: addr,
 			URL:   fmt.Sprintf("%s://%s:%d", scheme, ip, port),
 		})
