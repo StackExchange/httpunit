@@ -342,6 +342,7 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 		Dial: func(network, a string) (net.Conn, error) {
 			return net.DialTimeout(network, c.addr(), Timeout)
 		},
+		DisableKeepAlives: true,
 	}
 	req, err := http.NewRequest("GET", c.URL.String(), nil)
 	if err != nil {
