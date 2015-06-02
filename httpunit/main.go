@@ -29,8 +29,6 @@ var (
 	timeout  = flag.Duration("timeout", time.Second*3, "connection timeout")
 )
 
-var errOneMode = fmt.Errorf("only one execution mode allowed at once")
-
 func main() {
 	flag.Parse()
 	if *verbose2 {
@@ -41,26 +39,21 @@ func main() {
 	if *timeout > 0 {
 		httpunit.Timeout = *timeout
 	}
-	if *hiera != "" {
-		if plans.Plans != nil {
-			log.Fatal(errOneMode)
-		}
-		plans.Plans, err = extractHiera(*hiera)
-		if err != nil {
+	if *tomlLoc != "" {
+		if _, err := toml.DecodeFile(*tomlLoc, &plans); err != nil {
 			log.Fatal(err)
 		}
 	}
-	if *tomlLoc != "" {
-		if plans.Plans != nil {
-			log.Fatal(errOneMode)
-		}
-		if _, err := toml.DecodeFile(*tomlLoc, &plans); err != nil {
+	if *hiera != "" {
+		p, err := extractHiera(*hiera)
+		plans.Plans = append(plans.Plans, p...)
+		if err != nil {
 			log.Fatal(err)
 		}
 	}
 	if args := flag.Args(); len(args) > 0 {
 		if plans.Plans != nil {
-			log.Fatal(errOneMode)
+			log.Fatal("cannot manually specify URLs with other modes")
 		}
 		u := args[0]
 		args = args[1:]

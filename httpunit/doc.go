@@ -2,18 +2,18 @@
 
 httpunit tests compliance of web and net servers with desired output.
 
-It has three modes. All modes support flag options. Only one mode may be
-active at once.
+It has three modes. All modes support flag options. The toml and hiera modes
+may be used together.
 
 If toml is specified, that toml file is read into the configuration. See
-the TOML section below for format
+the TOML section below for format.
+
+If hiera is specified, the listeners from it are extracted and tested.
 
 If url is specified, it checks only the specified URL with optional IP
 address, status code, and regex. If url does not contain a scheme ("https://",
 "http://"), "http://" is prefixed. The IP may be an empty string to indicate
 all IP addresses resolved to from the URL's hostname.
-
-If hiera is specified, the listeners from it are extracted and tested.
 
 Usage:
 	httpunit [flag] [-hiera="path/to/sets.json"] [-toml="/path/to/httpunit.toml"] [url] [ip] [code] [regex]
