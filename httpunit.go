@@ -276,7 +276,14 @@ func (p *TestPlan) Cases(filter string, no10 bool, IPs IPMap) ([]*TestCase, erro
 			if i == "*" {
 				addrs, err := net.LookupHost(host)
 				if err != nil {
-					return nil, err
+					cases = append(cases, &TestCase{
+						URL:     u,
+						Port:    port,
+						Plan:    p,
+						FromDNS: true,
+						Error:   err,
+					})
+					continue
 				}
 				if err := add(true, addrs...); err != nil {
 					return nil, err
@@ -300,6 +307,9 @@ type TestCase struct {
 	Plan *TestPlan
 	// FromDNS is true if IP was determined with a DNS lookup.
 	FromDNS bool
+	// Error is populated if the TestPlan could not create a TestCase. In this case
+	// the test is not run, and this error is passed directly to the TestResult.
+	Error error
 
 	ExpectCode  int
 	ExpectText  string
@@ -323,6 +333,11 @@ func (c *TestCase) addr() string {
 
 // Test performs this test case.
 func (c *TestCase) Test() *TestResult {
+	if c.Error != nil {
+		return &TestResult{
+			Result: c.Error,
+		}
+	}
 	switch c.URL.Scheme {
 	case "http", "https":
 		return c.testHTTP()
