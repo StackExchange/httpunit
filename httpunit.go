@@ -309,6 +309,12 @@ type TestCase struct {
 type TestResult struct {
 	Result error
 	Resp   *http.Response
+
+	Connected   bool
+	GotCode     bool
+	GotText     bool
+	GotRegex    bool
+	InvalidCert bool
 }
 
 func (c *TestCase) addr() string {
@@ -332,6 +338,7 @@ func (c *TestCase) testConnect() (r *TestResult) {
 		r.Result = err
 		return
 	}
+	r.Connected = true
 	conn.Close()
 	return
 }
@@ -340,7 +347,11 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 	r = new(TestResult)
 	tr := &http.Transport{
 		Dial: func(network, a string) (net.Conn, error) {
-			return net.DialTimeout(network, c.addr(), Timeout)
+			conn, err := net.DialTimeout(network, c.addr(), Timeout)
+			if err != nil {
+				r.Connected = false
+			}
+			return conn, err
 		},
 		DisableKeepAlives: true,
 	}
@@ -350,10 +361,14 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 		return
 	}
 	time.AfterFunc(Timeout, func() {
+		r.Connected = false
 		tr.CancelRequest(req)
 	})
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "x509") {
+			r.InvalidCert = true
+		}
 		r.Result = err
 		return
 	}
@@ -361,7 +376,8 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 	r.Resp = resp
 	if resp.StatusCode != c.ExpectCode {
 		r.Result = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-		return
+	} else {
+		r.GotCode = true
 	}
 	text, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -374,11 +390,13 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 	}
 	if c.ExpectText != "" && !strings.Contains(string(text), c.ExpectText) {
 		r.Result = fmt.Errorf("response does not contain text [%s]: %q", c.ExpectText, short)
-		return
+	} else {
+		r.GotText = true
 	}
 	if c.ExpectRegex != nil && !c.ExpectRegex.Match(text) {
 		r.Result = fmt.Errorf("response does not match regex [%s]: %q", c.ExpectRegex, short)
-		return
+	} else {
+		r.GotRegex = true
 	}
-	return r
+	return
 }
