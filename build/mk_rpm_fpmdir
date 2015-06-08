@@ -75,7 +75,7 @@ cat "$@" | while read -a arr ; do
     exit 1
   fi
   if [[ $SRC == "cmd/"* || $SRC == *"/cmd/"* ]]; then
-    ( cd $(dirname "$SRC" ) && go build -a ) 
+    ( cd $(dirname "$SRC" ) && go get -d && go build -a ) 
   fi
   if [[ ! -f "$SRC" ]]; then
     echo "${CMDNAME}: ERROR: File not found: $SRC"
