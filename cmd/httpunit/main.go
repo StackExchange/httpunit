@@ -2,10 +2,8 @@ package main
 
 import (
 	"crypto/sha1"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -45,7 +43,7 @@ func main() {
 		}
 	}
 	if *hiera != "" {
-		p, err := extractHiera(*hiera)
+		p, err := httpunit.ExtractHiera(*hiera)
 		plans.Plans = append(plans.Plans, p...)
 		if err != nil {
 			log.Fatal(err)
@@ -186,47 +184,4 @@ Loop:
 			fmt.Println("ERROR:", r.Result.Result)
 		}
 	}
-}
-
-func extractHiera(fname string) ([]*httpunit.TestPlan, error) {
-	b, err := ioutil.ReadFile(fname)
-	if err != nil {
-		return nil, err
-	}
-	var hs HieraSets
-	if err := json.Unmarshal(b, &hs); err != nil {
-		return nil, err
-	}
-	var plans []*httpunit.TestPlan
-	for addr := range hs.Iptables.Listeners.Members {
-		sp := strings.Split(addr, ":")
-		if len(sp) != 2 {
-			return nil, fmt.Errorf("unrecognized hiera address: %s", addr)
-		}
-		port, err := strconv.Atoi(sp[1])
-		if err != nil {
-			return nil, fmt.Errorf("bad hiera port %s in %s", sp[1], addr)
-		}
-		sp = strings.Split(sp[0], ",")
-		if len(sp) != 2 {
-			return nil, fmt.Errorf("unrecognized hiera address: %s", addr)
-		}
-		ip, scheme := sp[0], sp[1]
-		plans = append(plans, &httpunit.TestPlan{
-			Label: addr,
-			URL:   fmt.Sprintf("%s://%s:%d", scheme, ip, port),
-		})
-	}
-	return plans, nil
-}
-
-type HieraSets struct {
-	Iptables struct {
-		Listeners struct {
-			Config  string `json:"config"`
-			Members map[string]struct {
-				Comment string `json:"comment"`
-			} `json:"members"`
-		} `json:"listeners"`
-	} `json:"iptables::sets::sets"`
 }
