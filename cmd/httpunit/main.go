@@ -108,13 +108,13 @@ Loop:
 		case <-next:
 			fmt.Fprintf(os.Stderr, "%v of %v done in %v\n", got, count, time.Since(start))
 			next = time.After(delay)
-		case r := <-rch:
-			res = append(res, r)
-			got++
-			if count == got {
+		case r, ok := <-rch:
+			if !ok {
 				fmt.Fprintf(os.Stderr, "%v of %v done in %v\n", got, count, time.Since(start))
 				break Loop
 			}
+			res = append(res, r)
+			got++
 		}
 	}
 
