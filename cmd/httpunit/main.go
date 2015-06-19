@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -25,6 +26,7 @@ var (
 	verbose2 = flag.Bool("vv", false, "more verbose output: show -header, cert details")
 	header   = flag.String("header", "X-Request-Guid", "an HTTP to header to print in verbose mode")
 	timeout  = flag.Duration("timeout", time.Second*3, "connection timeout")
+	ipMap    = flag.String("ipmap", "", `override or set one entry if the IPs table, in "key=value" format, where value is a JSON array of strings; for example: -ipmap='BASEIP=["10.2.3.", "1.4.5."]'`)
 )
 
 func main() {
@@ -32,7 +34,9 @@ func main() {
 	if *verbose2 {
 		*verbose1 = true
 	}
-	plans := new(httpunit.Plans)
+	plans := &httpunit.Plans{
+		IPs: make(httpunit.IPMap),
+	}
 	var err error
 	if *timeout > 0 {
 		httpunit.Timeout = *timeout
@@ -88,6 +92,17 @@ func main() {
 			log.Fatalf("too many arguments")
 		}
 		plans.Plans = []*httpunit.TestPlan{&tp}
+	}
+	if *ipMap != "" {
+		sp := strings.SplitN(*ipMap, "=", 2)
+		if len(sp) != 2 {
+			log.Fatalf("expected key=value in -ipmap")
+		}
+		var vals []string
+		if err := json.Unmarshal([]byte(sp[1]), &vals); err != nil {
+			log.Fatalf("ipmap: %v", err)
+		}
+		plans.IPs[sp[0]] = vals
 	}
 	if len(plans.Plans) == 0 {
 		log.Fatalf("no tests specified")
