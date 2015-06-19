@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/StackExchange/httpunit"
-	"github.com/bradfitz/slice"
+	"github.com/StackExchange/httpunit/_third_party/github.com/BurntSushi/toml"
+	"github.com/StackExchange/httpunit/_third_party/github.com/bradfitz/slice"
 )
 
 var (
