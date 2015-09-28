@@ -30,7 +30,7 @@ var (
 )
 
 func doMain() int {
-  var seen_error int
+	var seen_error int
 	flag.Parse()
 	if *verbose2 {
 		*verbose1 = true
@@ -198,12 +198,12 @@ Loop:
 		fmt.Printf("==== %v: %v %s%s%s\n", r.Plan.Label, r.Plan.URL, ip, status, verbose)
 		if r.Result.Result != nil {
 			fmt.Println("ERROR:", r.Result.Result)
-      seen_error = 1
+			seen_error = 1
 		}
 	}
-  return seen_error
+	return seen_error
 }
 
 func main() {
-    os.Exit(doMain())  // http://stackoverflow.com/a/27629493/71978
+	os.Exit(doMain()) // http://stackoverflow.com/a/27629493/71978
 }
