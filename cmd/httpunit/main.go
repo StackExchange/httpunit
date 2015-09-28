@@ -29,7 +29,8 @@ var (
 	ipMap    = flag.String("ipmap", "", `override or set one entry if the IPs table, in "key=value" format, where value is a JSON array of strings; for example: -ipmap='BASEIP=["10.2.3.", "1.4.5."]'`)
 )
 
-func main() {
+func doMain() int {
+	var seen_error int
 	flag.Parse()
 	if *verbose2 {
 		*verbose1 = true
@@ -197,6 +198,12 @@ Loop:
 		fmt.Printf("==== %v: %v %s%s%s\n", r.Plan.Label, r.Plan.URL, ip, status, verbose)
 		if r.Result.Result != nil {
 			fmt.Println("ERROR:", r.Result.Result)
+			seen_error = 1
 		}
 	}
+	return seen_error
+}
+
+func main() {
+	os.Exit(doMain()) // http://stackoverflow.com/a/27629493/71978
 }
