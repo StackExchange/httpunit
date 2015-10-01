@@ -393,6 +393,7 @@ type TestResult struct {
 	GotText     bool
 	GotRegex    bool
 	InvalidCert bool
+	TimeTotal   time.Duration
 }
 
 func (c *TestCase) addr() string {
@@ -416,6 +417,10 @@ func (c *TestCase) Test() *TestResult {
 
 func (c *TestCase) testConnect() (r *TestResult) {
 	r = new(TestResult)
+	t := time.Now()
+	defer func() {
+		r.TimeTotal = time.Now().Sub(t)
+	}()
 	conn, err := net.DialTimeout(c.URL.Scheme, c.addr(), Timeout)
 	if err != nil {
 		r.Result = err
@@ -428,6 +433,10 @@ func (c *TestCase) testConnect() (r *TestResult) {
 
 func (c *TestCase) testHTTP() (r *TestResult) {
 	r = new(TestResult)
+	t := time.Now()
+	defer func() {
+		r.TimeTotal = time.Now().Sub(t)
+	}()
 	tr := &http.Transport{
 		Dial: func(network, a string) (net.Conn, error) {
 			conn, err := net.DialTimeout(network, c.addr(), Timeout)
