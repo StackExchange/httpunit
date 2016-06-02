@@ -428,7 +428,6 @@ func (c *TestCase) testConnect() (r *TestResult) {
 	defer func() {
 		r.TimeTotal = time.Now().Sub(t)
 	}()
-	log.Printf("%v", c.Timeout)
 	conn, err := net.DialTimeout(c.URL.Scheme, c.addr(), c.Timeout)
 	if err != nil {
 		r.Result = err
@@ -446,8 +445,7 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 		r.TimeTotal = time.Now().Sub(t)
 	}()
 	tr := &http.Transport{
-		Dial: func(network, a string) (net.Conn, error) {
-			log.Printf("%v", c.Timeout)
+		Dial: func(network, a string) (net.Conn, error) {)
 			conn, err := net.DialTimeout(network, c.addr(), c.Timeout)
 			if err != nil {
 				r.Connected = false
