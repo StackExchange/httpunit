@@ -387,7 +387,7 @@ type TestCase struct {
 	ExpectCode  int
 	ExpectText  string
 	ExpectRegex *regexp.Regexp
-	
+
 	Timeout time.Duration
 }
 
@@ -445,7 +445,7 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 		r.TimeTotal = time.Now().Sub(t)
 	}()
 	tr := &http.Transport{
-		Dial: func(network, a string) (net.Conn, error) {)
+		Dial: func(network, a string) (net.Conn, error) {
 			conn, err := net.DialTimeout(network, c.addr(), c.Timeout)
 			if err != nil {
 				r.Connected = false
