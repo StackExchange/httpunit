@@ -25,7 +25,7 @@ var (
 	verbose1 = flag.Bool("v", false, "verbose output: show successes")
 	verbose2 = flag.Bool("vv", false, "more verbose output: show -header, cert details")
 	header   = flag.String("header", "X-Request-Guid", "an HTTP to header to print in verbose mode")
-	timeout  = flag.Duration("timeout", time.Second*3, "connection timeout")
+	timeout  = flag.Duration("timeout", time.Second*10, "connection timeout")
 	ipMap    = flag.String("ipmap", "", `override or set one entry if the IPs table, in "key=value" format, where value is a JSON array of strings; for example: -ipmap='BASEIP=["10.2.3.", "1.4.5."]'`)
 )
 
