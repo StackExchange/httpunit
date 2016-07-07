@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/sha1"
 	"encoding/json"
 	"flag"
@@ -164,7 +166,9 @@ Loop:
 			fromDNS = "DNS"
 		}
 		ip := fmt.Sprintf("%v=%v", fromDNS, r.Case.IP)
-		var status, verbose string
+		var status string
+		var verbose bytes.Buffer
+		ver := bufio.NewWriter(&verbose)
 		if r.Case.ExpectCode > 0 {
 			status += fmt.Sprint(r.Case.ExpectCode)
 		}
@@ -184,18 +188,34 @@ Loop:
 			if resp := r.Result.Resp; resp != nil {
 				if *header != "" {
 					if h := resp.Header.Get(*header); h != "" {
-						verbose += fmt.Sprintf("\n\theader %s: %s", *header, h)
+						fmt.Fprintf(ver, "\n\theader %s: %s", *header, h)
 					}
 				}
 				if t := resp.TLS; t != nil {
 					for i, c := range t.PeerCertificates {
-						verbose += fmt.Sprintf("\n\tcert %v:\n\t\texpires: %v\n\t\tfingerprint: %x\n\t\tdomains: %q", i, c.NotAfter, sha1.Sum(c.Raw), c.DNSNames)
+						fmt.Fprintf(ver, "\n\tcert %v:", i)
+						fmt.Fprintf(ver, "\n\t\texpires: %v", c.NotAfter)
+						fmt.Fprintf(ver, "\n\t\tserial: %d", c.SerialNumber)
+						fmt.Fprintf(ver, "\n\t\tfingerprint: %x", sha1.Sum(c.Raw))
+						fmt.Fprintf(ver, "\n\t\tIssuer: %s", c.Issuer.Organization[0])
+						fmt.Fprintf(ver, "\n\t\tdomains: %q", c.DNSNames)
+					}
+					for j, v := range t.VerifiedChains {
+						for i, c := range v {
+							fmt.Fprintf(ver, "\n\tVerified chain %d.%d:", j, i)
+							fmt.Fprintf(ver, "\n\t\texpires: %v", c.NotAfter)
+							fmt.Fprintf(ver, "\n\t\tserial: %d", c.SerialNumber)
+							fmt.Fprintf(ver, "\n\t\tfingerprint: %x", sha1.Sum(c.Raw))
+							fmt.Fprintf(ver, "\n\t\tIssuer: %s", c.Issuer.Organization[0])
+							fmt.Fprintf(ver, "\n\t\tdomains: %q", c.DNSNames)
+						}
 					}
 				}
 			}
 
 		}
-		fmt.Printf("==== %v: %v %s%s%s\n", r.Plan.Label, r.Plan.URL, ip, status, verbose)
+		ver.Flush()
+		fmt.Printf("==== %v: %v %s%s%s\n", r.Plan.Label, r.Plan.URL, ip, status, verbose.String())
 		if r.Result.Result != nil {
 			fmt.Println("ERROR:", r.Result.Result)
 			seen_error = 1
