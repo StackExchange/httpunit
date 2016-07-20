@@ -197,7 +197,9 @@ Loop:
 						fmt.Fprintf(ver, "\n\t\texpires: %v", c.NotAfter)
 						fmt.Fprintf(ver, "\n\t\tserial: %d", c.SerialNumber)
 						fmt.Fprintf(ver, "\n\t\tfingerprint: %x", sha1.Sum(c.Raw))
-						fmt.Fprintf(ver, "\n\t\tIssuer: %s", c.Issuer.Organization[0])
+						for _, o := range c.Issuer.Organization {
+							fmt.Fprintf(ver, "\n\t\tIssuer: %s", o)
+						}
 						fmt.Fprintf(ver, "\n\t\tdomains: %q", c.DNSNames)
 					}
 					for j, v := range t.VerifiedChains {
@@ -206,7 +208,9 @@ Loop:
 							fmt.Fprintf(ver, "\n\t\texpires: %v", c.NotAfter)
 							fmt.Fprintf(ver, "\n\t\tserial: %d", c.SerialNumber)
 							fmt.Fprintf(ver, "\n\t\tfingerprint: %x", sha1.Sum(c.Raw))
-							fmt.Fprintf(ver, "\n\t\tIssuer: %s", c.Issuer.Organization[0])
+							for _, o := range c.Issuer.Organization {
+								fmt.Fprintf(ver, "\n\t\tIssuer: %s", o)
+							}
 							fmt.Fprintf(ver, "\n\t\tdomains: %q", c.DNSNames)
 						}
 					}
