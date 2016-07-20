@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha1"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -30,6 +32,49 @@ var (
 	timeout  = flag.Duration("timeout", httpunit.Timeout, "connection timeout")
 	ipMap    = flag.String("ipmap", "", `override or set one entry if the IPs table, in "key=value" format, where value is a JSON array of strings; for example: -ipmap='BASEIP=["10.2.3.", "1.4.5."]'`)
 )
+
+func printNames(x []pkix.AttributeTypeAndValue) []string {
+	var r []string
+	for _, v := range x {
+		r = append(r, v.Value.(string))
+	}
+	return r
+}
+
+func printStringsIfExist(w *bufio.Writer, label string, list []string) {
+	switch {
+	case len(list) == 1:
+		fmt.Fprintf(w, `%s: %q`, label, list[0])
+	case len(list) > 1:
+		fmt.Fprintf(w, `%s: %q`, label, list)
+		//fmt.Fprintf(w, `%s: "{%s"}`, label, strings.Join(list, `" "`))
+	default:
+		// do nothing.
+	}
+}
+
+func printCert(w *bufio.Writer, c *x509.Certificate) {
+	h := "\n\t\t"
+	fmt.Fprintf(w, h+"expires: %v", c.NotAfter)
+	fmt.Fprintf(w, h+"serial: %d", c.SerialNumber)
+	fmt.Fprintf(w, h+"fingerprint: %x", sha1.Sum(c.Raw))
+	fmt.Fprintf(w, h+"version: %d", c.Version)
+	fmt.Fprintf(w, h+"domains: %q", c.DNSNames)
+	if len(c.EmailAddresses) > 0 {
+		fmt.Fprintf(w, h+"emails: %q", c.EmailAddresses)
+	}
+	if len(c.IPAddresses) > 0 {
+		fmt.Fprintf(w, h+"IPs: %q", c.IPAddresses)
+	}
+	printStringsIfExist(w, h+"Names", printNames(c.Issuer.Names))
+	printStringsIfExist(w, h+"ExtraNames", printNames(c.Issuer.ExtraNames))
+	printStringsIfExist(w, h+"Country", c.Issuer.Country)
+	printStringsIfExist(w, h+"Organization", c.Issuer.Organization)
+	printStringsIfExist(w, h+"OrganizationalUnit", c.Issuer.OrganizationalUnit)
+	printStringsIfExist(w, h+"Locality", c.Issuer.Locality)
+	printStringsIfExist(w, h+"Province", c.Issuer.Province)
+
+}
 
 func doMain() int {
 	var seen_error int
@@ -194,24 +239,13 @@ Loop:
 				if t := resp.TLS; t != nil {
 					for i, c := range t.PeerCertificates {
 						fmt.Fprintf(ver, "\n\tcert %v:", i)
-						fmt.Fprintf(ver, "\n\t\texpires: %v", c.NotAfter)
-						fmt.Fprintf(ver, "\n\t\tserial: %d", c.SerialNumber)
-						fmt.Fprintf(ver, "\n\t\tfingerprint: %x", sha1.Sum(c.Raw))
-						for _, o := range c.Issuer.Organization {
-							fmt.Fprintf(ver, "\n\t\tIssuer: %s", o)
-						}
-						fmt.Fprintf(ver, "\n\t\tdomains: %q", c.DNSNames)
+						printCert(ver, c)
+
 					}
 					for j, v := range t.VerifiedChains {
 						for i, c := range v {
 							fmt.Fprintf(ver, "\n\tVerified chain %d.%d:", j, i)
-							fmt.Fprintf(ver, "\n\t\texpires: %v", c.NotAfter)
-							fmt.Fprintf(ver, "\n\t\tserial: %d", c.SerialNumber)
-							fmt.Fprintf(ver, "\n\t\tfingerprint: %x", sha1.Sum(c.Raw))
-							for _, o := range c.Issuer.Organization {
-								fmt.Fprintf(ver, "\n\t\tIssuer: %s", o)
-							}
-							fmt.Fprintf(ver, "\n\t\tdomains: %q", c.DNSNames)
+							printCert(ver, c)
 						}
 					}
 				}
