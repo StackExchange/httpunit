@@ -28,11 +28,11 @@ The flags are:
 		connection timeout
 	-tags=""
 	    if specified, only runs plans that are tagged with one of the
-		tags specified. You can specify more than one tag, seperated by comma
+		tags specified. You can specify more than one tag, seperated by commas
 	-protos=""
 		if specified, only runs plans where the URL contains the given
 		protocol. Valid protocols are: http,https,tcp,tcp4,tcp6,udp,udp4,udp6,ip,ip4,ip6
-		You can specify more than one protocol, seperated by comma
+		You can specify more than one protocol, seperated by commas
 	-header="X-Request-Guid"
 		in more verbose mode, print this HTTP header
 	-v
