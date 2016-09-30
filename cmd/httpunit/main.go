@@ -32,6 +32,7 @@ var (
 	timeout  = flag.Duration("timeout", httpunit.Timeout, "connection timeout")
 	ipMap    = flag.String("ipmap", "", `override or set one entry if the IPs table, in "key=value" format, where value is a JSON array of strings; for example: -ipmap='BASEIP=["10.2.3.", "1.4.5."]'`)
 	tags     = flag.String("tags", "", "if specified, only run plans that are tagged with these tags. Use comma seperated to include mutiple tags, e.g. \"normal,extended\"")
+	protos   = flag.String("protos", "", "if specified, only run tests that use the designated protocol. Valid choices are: http,https,tcp,tcp4,tcp6,udp,udp4,udp6,ip,ip4,ip6. e.g. \"http,https\"")
 )
 
 func printNames(x []pkix.AttributeTypeAndValue) []string {
@@ -160,7 +161,11 @@ func doMain() int {
 	if *tags != "" {
 		tagFilter = strings.Split(*tags, ",")
 	}
-	rch, count, err := plans.Test(*filter, *no10, tagFilter)
+	var protoFilter []string
+	if *protos != "" {
+		protoFilter = strings.Split(*protos, ",")
+	}
+	rch, count, err := plans.Test(*filter, *no10, tagFilter, protoFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
