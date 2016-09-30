@@ -26,6 +26,9 @@ The flags are:
 		no RFC1918 addresses
 	-timeout="3s"
 		connection timeout
+	-tags=""
+	    if specified, only runs plans that are tagged with one of the
+		tags specified
 	-header="X-Request-Guid"
 		in more verbose mode, print this HTTP header
 	-v

@@ -101,12 +101,30 @@ type Results []*PlanResult
 // disallows 10.* addresses. It returns a channel where results will be sent
 // when complete, and the total number of results to expect. The channel is
 // closed once all results are completed.
-func (ps *Plans) Test(filter string, no10 bool) (<-chan *PlanResult, int, error) {
+func (ps *Plans) Test(filter string, no10 bool, tagFilters []string) (<-chan *PlanResult, int, error) {
 	var wg sync.WaitGroup
 	count := 0
 	ch := make(chan *PlanResult)
 	labels := make(map[string]bool)
 	for _, p := range ps.Plans {
+		var matchedTag bool
+		hasTagFilter := len(tagFilters) > 0
+		if hasTagFilter {
+			if len(p.Tags) == 0 {
+				continue
+			}
+			for _, thisTag := range tagFilters {
+				for _, planTag := range p.Tags {
+					if planTag == thisTag {
+						matchedTag = true
+						continue
+					}
+				}
+			}
+		}
+		if hasTagFilter && !matchedTag {
+			continue
+		}
 		if labels[p.Label] {
 			return nil, 0, fmt.Errorf("duplicate label: %v", p.Label)
 		}
@@ -236,6 +254,7 @@ type TestPlan struct {
 	Label string
 	URL   string
 	IPs   []string
+	Tags  []string
 
 	Code    int
 	Text    string
@@ -313,6 +332,7 @@ func (p *TestPlan) Cases(filter string, no10 bool, IPs IPMap) ([]*TestCase, erro
 					continue
 				}
 			}
+
 			c := &TestCase{
 				URL:         u,
 				IP:          net.ParseIP(ip),
