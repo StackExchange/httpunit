@@ -101,7 +101,7 @@ type Results []*PlanResult
 // disallows 10.* addresses. It returns a channel where results will be sent
 // when complete, and the total number of results to expect. The channel is
 // closed once all results are completed.
-func (ps *Plans) Test(filter string, no10 bool, tagFilters []string) (<-chan *PlanResult, int, error) {
+func (ps *Plans) Test(filter string, no10 bool, tagFilters []string, protoFilters []string) (<-chan *PlanResult, int, error) {
 	var wg sync.WaitGroup
 	count := 0
 	ch := make(chan *PlanResult)
@@ -129,7 +129,7 @@ func (ps *Plans) Test(filter string, no10 bool, tagFilters []string) (<-chan *Pl
 			return nil, 0, fmt.Errorf("duplicate label: %v", p.Label)
 		}
 		labels[p.Label] = true
-		cs, err := p.Cases(filter, no10, ps.IPs)
+		cs, err := p.Cases(filter, no10, ps.IPs, protoFilters)
 		if err != nil {
 			return nil, 0, fmt.Errorf("%v: %v", p.Label, err)
 		}
@@ -263,7 +263,7 @@ type TestPlan struct {
 }
 
 // Cases computes the actual test cases from a test plan. filter and no10 are described in Plans.Test.
-func (p *TestPlan) Cases(filter string, no10 bool, IPs IPMap) ([]*TestCase, error) {
+func (p *TestPlan) Cases(filter string, no10 bool, IPs IPMap, protoFilters []string) ([]*TestCase, error) {
 	if p.Label == "" {
 		return nil, fmt.Errorf("%v: label must not be empty", p.URL)
 	}
@@ -276,6 +276,18 @@ func (p *TestPlan) Cases(filter string, no10 bool, IPs IPMap) ([]*TestCase, erro
 	sp := strings.Split(u.Host, ":")
 	if len(sp) > 2 {
 		return nil, fmt.Errorf("bad host")
+	}
+	matchedProto := false
+	hasProtoFilter := len(protoFilters) > 0
+	if hasProtoFilter {
+		for _, pf := range protoFilters {
+			if strings.ToLower(u.Scheme) == strings.ToLower(pf) {
+				matchedProto = true
+			}
+		}
+	}
+	if hasProtoFilter && !matchedProto {
+		return nil, nil
 	}
 	host := sp[0]
 	var port string
