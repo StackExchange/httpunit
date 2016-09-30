@@ -31,6 +31,7 @@ var (
 	header   = flag.String("header", "X-Request-Guid", "an HTTP to header to print in verbose mode")
 	timeout  = flag.Duration("timeout", httpunit.Timeout, "connection timeout")
 	ipMap    = flag.String("ipmap", "", `override or set one entry if the IPs table, in "key=value" format, where value is a JSON array of strings; for example: -ipmap='BASEIP=["10.2.3.", "1.4.5."]'`)
+	tags     = flag.String("tags", "", "if specified, only run plans that are tagged with these tags. Use comma seperated to include mutiple tags, e.g. \"normal,extended\"")
 )
 
 func printNames(x []pkix.AttributeTypeAndValue) []string {
@@ -155,7 +156,11 @@ func doMain() int {
 	if len(plans.Plans) == 0 {
 		log.Fatalf("no tests specified")
 	}
-	rch, count, err := plans.Test(*filter, *no10)
+	var tagFilter []string
+	if *tags != "" {
+		tagFilter = strings.Split(*tags, ",")
+	}
+	rch, count, err := plans.Test(*filter, *no10, tagFilter)
 	if err != nil {
 		log.Fatal(err)
 	}

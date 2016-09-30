@@ -33,6 +33,9 @@ The flags are:
 		no RFC1918 addresses
 	-timeout="3s"
 		connection timeout
+	-tags=""
+	    if specified, only runs plans that are tagged with one of the
+		tags specified
 	-header="X-Request-Guid"
 		in more verbose mode, print this HTTP header
 	-v
@@ -63,6 +66,7 @@ Each `[[plan]]` lists:
  * `string =` For http/https, a string we expect to find in the result.
  * `regex =` For http/https, a regular expression we expect to match in the result.
  * `timeout =` An optional timeout for the test in seconds. Default is 3 seconds.
+ * `tags =` An optional set of tags for the test. Used for when you want to only run a subset of tests with the `-tags` flag
 
 The test plan is run once for each item in the ips list, or more if macros
 are in effect.
@@ -154,6 +158,7 @@ INT (e.g. "16INT") to indicate a slightly diffenent list.
 	  ips = ["16", "8.7.6.5"]
 	  text = "API for example.com"
 	  regex = "some regex"
+	  tags = ["apis","example.com"]
 	
 	[[plan]]
 	  label = "redirect"
@@ -161,6 +166,7 @@ INT (e.g. "16INT") to indicate a slightly diffenent list.
 	  # This will generate the DNS A/AAAA records, 10.0.1.20, 10.0.2.20, 87.65.43.20, 87.65.43.84:
 	  ips = ["*", "20INT"]
 	  code = 301
+	  tags = ["redirect","example.com"]
 	
 	[[plan]]
 	  label = "mail"
