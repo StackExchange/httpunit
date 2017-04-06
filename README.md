@@ -149,7 +149,7 @@ diagnosing outages.
 In this example we want an IP address to mean the IP address, but if we
 specify a single number (e.g. "16") we want that to expand to the .16 address
 of a few different CIDR blocks. We also want to be able to specify a number +
-INT (e.g. "16INT") to indicate a slightly diffenent list.
+INT (e.g. "16INT") to indicate a slightly different list.
 
 	[IPs]
 	  BASEIP = ["87.65.43."]
