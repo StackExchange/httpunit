@@ -71,6 +71,7 @@ Each `[[plan]]` lists:
  * `regex =` For http/https, a regular expression we expect to match in the result.
  * `timeout =` An optional timeout for the test in seconds. Default is 3 seconds.
  * `tags =` An optional set of tags for the test. Used for when you want to only run a subset of tests with the `-tags` flag
+ * `[Headers]` A set of key/value pairs to set as headers on the outgoing request
 
 
 The test plan is run once for each item in the ips list, or more if macros
@@ -164,6 +165,8 @@ INT (e.g. "16INT") to indicate a slightly different list.
 	  text = "API for example.com"
 	  regex = "some regex"
 	  tags = ["apis","example.com"]
+	  [Headers]
+	     Authorization = "Basic QWxhZGRpbjpPcGVuU2VzYW1l"
 	
 	[[plan]]
 	  label = "redirect"

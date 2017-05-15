@@ -74,6 +74,8 @@ An example file:
 	  ips = ["16", "8.7.6.5"]
 	  text = "API for example.com"
 	  regex = "some regex"
+	  [Headers]
+	     Authorization = "Basic QWxhZGRpbjpPcGVuU2VzYW1l"
 
 	[[plan]]
 	  label = "redirect"

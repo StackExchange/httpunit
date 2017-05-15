@@ -251,10 +251,11 @@ var Timeout = time.Second * 10
 
 // TestPlan describes a test and its permutations (IP addresses).
 type TestPlan struct {
-	Label string
-	URL   string
-	IPs   []string
-	Tags  []string
+	Label   string
+	URL     string
+	IPs     []string
+	Tags    []string
+	Headers map[string]string
 
 	Code    int
 	Text    string
@@ -346,15 +347,15 @@ func (p *TestPlan) Cases(filter string, no10 bool, IPs IPMap, protoFilters []str
 			}
 
 			c := &TestCase{
-				URL:         u,
-				IP:          net.ParseIP(ip),
-				Port:        port,
-				Plan:        p,
-				FromDNS:     fromDNS,
 				ExpectCode:  code,
-				ExpectText:  p.Text,
 				ExpectRegex: re,
+				ExpectText:  p.Text,
+				FromDNS:     fromDNS,
+				IP:          net.ParseIP(ip),
+				Plan:        p,
+				Port:        port,
 				Timeout:     p.Timeout * time.Second,
+				URL:         u,
 			}
 			if c.IP == nil {
 				return fmt.Errorf("invalid ip: %v", ip)
@@ -471,11 +472,20 @@ func (c *TestCase) testConnect() (r *TestResult) {
 }
 
 func (c *TestCase) testHTTP() (r *TestResult) {
-	r = new(TestResult)
-	t := time.Now()
-	defer func() {
-		r.TimeTotal = time.Now().Sub(t)
-	}()
+
+	req, err := http.NewRequest("GET", c.URL.String(), nil)
+	if err != nil {
+		r.Result = err
+		return
+	}
+	for k, v := range c.Plan.Headers {
+		req.Header.Set(k, v)
+	}
+	return sendRequest(req, c)
+}
+
+func sendRequest(req *http.Request, c *TestCase) (r *TestResult) {
+	r = &TestResult{}
 	tr := &http.Transport{
 		Dial: func(network, a string) (net.Conn, error) {
 			conn, err := net.DialTimeout(network, c.addr(), c.Timeout)
@@ -486,18 +496,24 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 		},
 		DisableKeepAlives: true,
 	}
-	req, err := http.NewRequest("GET", c.URL.String(), nil)
-	if err != nil {
-		r.Result = err
-		return
-	}
+
+	// TimeTotal set in final defer to make sure it gets set.
+	t := time.Now()
+	defer func() {
+		r.TimeTotal = time.Now().Sub(t)
+	}()
+
+	// Timeout will set fields and try to cancel request. That should make the RoundTrip Call return quickly.
 	timedOut := false
 	timout := time.AfterFunc(c.Timeout, func() {
 		timedOut = true
 		r.Connected = false
 		tr.CancelRequest(req)
 	})
+	// If we complete successfully, cancel the timeout
 	defer timout.Stop()
+
+	// Now send the request
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "x509") {
@@ -510,35 +526,52 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 		}
 		return
 	}
+
+	if timedOut {
+		r.Result = fmt.Errorf("i/o timeout")
+		return r
+	}
+
+	c.checkResponse(resp, r)
+	return r
+}
+
+func (c *TestCase) checkResponse(resp *http.Response, r *TestResult) {
 	defer resp.Body.Close()
+
+	// check status code
 	r.Resp = resp
 	if resp.StatusCode != c.ExpectCode {
 		r.Result = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	} else {
-		r.GotCode = true
-	}
-	text, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		if timedOut {
-			r.Result = fmt.Errorf("i/o timeout")
-		} else {
-			r.Result = err
-		}
 		return
 	}
-	short := text
-	if len(short) > 250 {
-		short = short[:250]
+	r.GotCode = true
+
+	// read body
+	text, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		r.Result = err
+		return
 	}
+
+	short := func() []byte {
+		if len(text) <= 250 {
+			return text
+		}
+		return text[:250]
+	}
+
+	// check text if given
 	if c.ExpectText != "" && !strings.Contains(string(text), c.ExpectText) {
-		r.Result = fmt.Errorf("response does not contain text [%s]: %q", c.ExpectText, short)
+		r.Result = fmt.Errorf("response does not contain text [%s]: %q", c.ExpectText, short())
 	} else {
 		r.GotText = true
 	}
+
+	// check regex if given
 	if c.ExpectRegex != nil && !c.ExpectRegex.Match(text) {
-		r.Result = fmt.Errorf("response does not match regex [%s]: %q", c.ExpectRegex, short)
+		r.Result = fmt.Errorf("response does not match regex [%s]: %q", c.ExpectRegex, short())
 	} else {
 		r.GotRegex = true
 	}
-	return
 }
