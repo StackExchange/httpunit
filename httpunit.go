@@ -2,6 +2,7 @@
 package httpunit
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -256,10 +257,11 @@ type TestPlan struct {
 	IPs   []string
 	Tags  []string
 
-	Code    int
-	Text    string
-	Regex   string
-	Timeout time.Duration
+	Code               int
+	Text               string
+	Regex              string
+	InsecureSkipVerify bool
+	Timeout            time.Duration
 }
 
 // Cases computes the actual test cases from a test plan. filter and no10 are described in Plans.Test.
@@ -485,6 +487,9 @@ func (c *TestCase) testHTTP() (r *TestResult) {
 			return conn, err
 		},
 		DisableKeepAlives: true,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: c.Plan.InsecureSkipVerify,
+		},
 	}
 	req, err := http.NewRequest("GET", c.URL.String(), nil)
 	if err != nil {
