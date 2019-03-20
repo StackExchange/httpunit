@@ -71,6 +71,7 @@ Each `[[plan]]` lists:
  * `regex =` For http/https, a regular expression we expect to match in the result.
  * `timeout =` An optional timeout for the test in seconds. Default is 3 seconds.
  * `tags =` An optional set of tags for the test. Used for when you want to only run a subset of tests with the `-tags` flag
+ * `insecureSkipVerify = true` Will allow testing of untrusted or self-signed certificates.
 
 
 The test plan is run once for each item in the ips list, or more if macros
