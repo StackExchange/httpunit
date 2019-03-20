@@ -85,5 +85,10 @@ An example file:
 	  label = "mail"
 	  url = "tcp://mail-host.com:25"
 
+	[[plan]]
+	  label = "self-signed"
+	  url = "https://internal.example.com"
+	  insecureSkipVerify = true
+	  code = 200
 */
 package main
