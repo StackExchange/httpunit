@@ -51,7 +51,7 @@ The flags are:
 
 URLs may be specified with various protocols: http, https, tcp,
 udp, ip. "4" or "6" may be appended to tcp, udp, and ip (as per
-[net/#Dial](http://golang.org/pkg/net/#Dial])). tcp and udp must specify
+[net/#Dial](http://golang.org/pkg/net/#Dial)). tcp and udp must specify
 a port, or default to 0. http and https may specify a port to override
 the default.
 
