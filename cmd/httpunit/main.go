@@ -58,7 +58,7 @@ func printStringsIfExist(w *bufio.Writer, label string, list []string) {
 func printCert(w *bufio.Writer, c *x509.Certificate) {
 	h := "\n\t\t"
 	fmt.Fprintf(w, h+"expires: %v", c.NotAfter)
-	fmt.Fprintf(w, h+"serial: %d", c.SerialNumber)
+	fmt.Fprintf(w, h+"serial: %x", c.SerialNumber)
 	fmt.Fprintf(w, h+"fingerprint: %x", sha1.Sum(c.Raw))
 	fmt.Fprintf(w, h+"version: %d", c.Version)
 	fmt.Fprintf(w, h+"domains: %q", c.DNSNames)
