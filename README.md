@@ -13,10 +13,10 @@ Tests can be input three ways:
 
  * *Command line:* A single test can be listed on the command line. This is useful for interactive debugging.
  * *TOML file:* A list of tests, with a full range of features, can be listed in a TOML file. This is the recommended mode for tests done on a regular basis. The format is described below.
- * *JSON/Hiera mode:* A simple list tcp tests can be specified in JSON format. These are in the format of a iptables "set". This mode is highly specific to a local requirement.
+ * *JSON/Hiera mode:* A simple list tcp tests can be specified in JSON format. These are in the format of an iptables "set". This mode is highly specific to a local requirement.
 
 When specifying a single test on the command line, the only tests performed
-are status code, and regex. If url does not contain a scheme ("https://",
+are status code, and regex. If the URL does not contain a scheme ("https://",
 "http://"), "http://" is prefixed. The IP may be an empty string to indicate
 all IP addresses resolved to from the URL's hostname.
 
@@ -34,7 +34,7 @@ The flags are:
 	-timeout="3s"
 		connection timeout
 	-tags=""
-	    if specified, only runs plans that are tagged with one of the
+	        if specified, only runs plans that are tagged with one of the
 		tags specified. You can specify more than one tag, seperated by commas
 	-protos=""
 		if specified, only runs plans where the URL contains the given
@@ -92,11 +92,11 @@ Similar to the previous example, but specify a base address:
 	BASEIP = ["10.0.0."]
 	'^(\d+)$' = ["BASEIP$1"]
 
-Specify a value _n_ to mean the 16th IP address many CIDR bocks:
+Specify a value _n_ to mean the 16th IP address in many CIDR bocks:
 
 	'^(\d+)$' = ["10.0.0.$1", "10.1.1.$1", "10.2.2.$1", "10.3.3.$1", "10.4.4.$1"]
 
-Specify a value _nINT_ to mean .n and .n+64, plus the whatever DNS returns:
+Specify a value _nINT_ to mean .n and .n+64, plus whatever DNS returns:
 
 	BASEIP = ["10.0.0."]
 	'^(\d+)$' = ["BASEIP$1", "BASEIP($1+64)", "*"]
@@ -120,7 +120,7 @@ quickly.
 When we need to make a change we first add the test, then we proceed making
 the change until the test passes. This test-driven development has accumulated
 200 tests that we run for any change, considerably more than we'd ever run
-manual. This improves confidence in our ability to make changes quickly.
+manually. This improves confidence in our ability to make changes quickly.
 
 While making unrelated changes we often run it in a loop to make sure we
 don't unintentionally break anything.
